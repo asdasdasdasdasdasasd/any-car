@@ -5,7 +5,7 @@ import telegram
 
 # == CONFIG ==
 MOBILE_BG_URL = "https://www.mobile.bg/obiavi/avtomobili-dzhipove/namira-se-v-balgariya"
-TELEGRAM_TOKEN = "<YOUR_BOT_TOKEN>"
+TELEGRAM_TOKEN = "7696676472:AAE6xFtU4v-QTaYOZBND21VEThls17ssoQc"
 CHAT_ID = -4939922320
 CHECK_INTERVAL = 300  # seconds (5 minutes)
 # == /CONFIG ==
@@ -17,7 +17,6 @@ def fetch_listings():
     resp = requests.get(MOBILE_BG_URL, timeout=10)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
-    # Each ad block has data-adid attribute
     ads = []
     for ad in soup.select("div[class*='list-item']"):
         adid = ad.get("data-ad-id")
