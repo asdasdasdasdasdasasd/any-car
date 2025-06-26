@@ -6,10 +6,10 @@ import os
 # --- CONFIGURATION ---
 TELEGRAM_BOT_TOKEN = "7696676472:AAE6xFtU4v-QTaYOZBND21VEThls17ssoQc"
 TELEGRAM_CHAT_ID = "-4939922320"
-MOBILE_BG_URL = "https://www.mobile.bg/"
-CHECK_INTERVAL = 120  # seconds
+CARS_BG_URL = "https://www.cars.bg/cars?order=newest"
+CHECK_INTERVAL = 10  # seconds
 
-SEEN_IDS_FILE = "seen_ids.txt"
+SEEN_IDS_FILE = "seen_ids_cars_bg.txt"
 
 def get_seen_ids():
     if not os.path.exists(SEEN_IDS_FILE):
@@ -26,23 +26,26 @@ def get_latest_listings():
     headers = {
         "User-Agent": "Mozilla/5.0"
     }
-    response = requests.get(MOBILE_BG_URL, headers=headers)
+    response = requests.get(CARS_BG_URL, headers=headers)
     soup = BeautifulSoup(response.text, "html.parser")
 
     listings = []
-    for a in soup.select('a.link-offer-title[href^="/obiava-"]'):
-        title = a.text.strip()
-        url = "https://www.mobile.bg" + a['href']
+    for row in soup.select("div.offer_list_item"):
+        link_tag = row.find("a", class_="offer_title", href=True)
+        if not link_tag:
+            continue
+        title = link_tag.text.strip()
+        url = "https://www.cars.bg" + link_tag['href']
+        # Listing ID is in the href: /offer/cars/id/12345678
         try:
-            listing_id = a['href'].split('obiava-')[1].split('-')[0]
+            listing_id = link_tag['href'].split('/')[-1]
         except Exception:
             continue
-        offer_div = a.find_parent('div.offer')
-        price_tag = offer_div.find('div', class_='offer-price') if offer_div else None
+        price_tag = row.find("div", class_="offer_price")
         price = price_tag.text.strip() if price_tag else "No price"
-        location_tag = offer_div.find('div', class_='offer-location') if offer_div else None
+        location_tag = row.find("div", class_="offer_location")
         location = location_tag.text.strip() if location_tag else "Unknown location"
-        img_tag = offer_div.find('img', src=True) if offer_div else None
+        img_tag = row.find("img", class_="offer_photo", src=True)
         img_url = img_tag['src'] if img_tag else None
 
         listings.append({
